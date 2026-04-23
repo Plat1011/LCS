@@ -9,6 +9,9 @@ const stepsBody = document.getElementById("stepsBody");
 const svg = d3.select("#graph");
 const width = +svg.attr("width");
 const height = +svg.attr("height");
+svg
+  .attr("viewBox", `0 0 ${width} ${height}`)
+  .attr("preserveAspectRatio", "xMidYMid meet");
 
 let graphData = null;
 let lcsSteps = [];
@@ -33,14 +36,20 @@ function renderGraph(graph, activeState = null) {
   svg.selectAll("*").remove();
   const nodeRadius = 22;
   const markerInset = 6;
+  const boundaryPadding = 12;
+  const minX = nodeRadius + boundaryPadding;
+  const maxX = width - nodeRadius - boundaryPadding;
+  const minY = nodeRadius + boundaryPadding;
+  const maxY = height - nodeRadius - boundaryPadding;
 
   const nodes = graph.nodes.map((n) => ({ ...n }));
+  const nodesById = new Map(nodes.map((n) => [n.id, n]));
   const edges = graph.edges.map((e) => ({
     ...e,
     source: e.from,
     target: e.to,
   }));
-   const suffixLinks = graph.suffixLinks.map((e) => ({ ...e }));
+  const suffixLinks = graph.suffixLinks.map((e) => ({ ...e }));
 
   const defs = svg.append("defs");
 
@@ -116,17 +125,18 @@ function renderGraph(graph, activeState = null) {
     .call(
       d3
         .drag()
-        .on("start", (event, d) => {
-          if (!event.active) simulation.alphaTarget(0.3).restart();
+        .on("start", (_event, d) => {
           d.fx = d.x;
           d.fy = d.y;
         })
         .on("drag", (event, d) => {
-          d.fx = event.x;
-          d.fy = event.y;
+          d.x = Math.max(minX, Math.min(maxX, event.x));
+          d.y = Math.max(minY, Math.min(maxY, event.y));
+          d.fx = d.x;
+          d.fy = d.y;
+          updatePositions();
         })
-        .on("end", (event, d) => {
-          if (!event.active) simulation.alphaTarget(0);
+        .on("end", (_event, d) => {
           d.fx = null;
           d.fy = null;
         })
@@ -143,23 +153,37 @@ function renderGraph(graph, activeState = null) {
     .attr("dy", 4)
     .attr("pointer-events", "none");
 
-  simulation.on("tick", () => {
-    const shiftedEnds = (x1, y1, x2, y2) => {
-      const dx = x2 - x1;
-      const dy = y2 - y1;
-      const len = Math.hypot(dx, dy);
-      if (len < 1e-6) {
-        return { sx: x1, sy: y1, tx: x2, ty: y2 };
-      }
-      const ux = dx / len;
-      const uy = dy / len;
-      return {
-        sx: x1 + ux * nodeRadius,
-        sy: y1 + uy * nodeRadius,
-        tx: x2 - ux * (nodeRadius + markerInset),
-        ty: y2 - uy * (nodeRadius + markerInset),
-      };
+  const shiftedEnds = (x1, y1, x2, y2) => {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len = Math.hypot(dx, dy);
+    if (len < 1e-6) {
+      return { sx: x1, sy: y1, tx: x2, ty: y2 };
+    }
+    const ux = dx / len;
+    const uy = dy / len;
+    return {
+      sx: x1 + ux * nodeRadius,
+      sy: y1 + uy * nodeRadius,
+      tx: x2 - ux * (nodeRadius + markerInset),
+      ty: y2 - uy * (nodeRadius + markerInset),
     };
+  };
+
+  const suffixEnds = (d) => {
+    const fromNode = nodesById.get(d.from);
+    const toNode = nodesById.get(d.to);
+    if (!fromNode || !toNode) {
+      return { sx: width / 2, sy: height / 2, tx: width / 2, ty: height / 2 };
+    }
+    return shiftedEnds(fromNode.x, fromNode.y, toNode.x, toNode.y);
+  };
+
+  const updatePositions = () => {
+    nodes.forEach((d) => {
+      d.x = Math.max(minX, Math.min(maxX, d.x));
+      d.y = Math.max(minY, Math.min(maxY, d.y));
+    });
 
     link
       .attr("x1", (d) => shiftedEnds(d.source.x, d.source.y, d.target.x, d.target.y).sx)
@@ -168,10 +192,10 @@ function renderGraph(graph, activeState = null) {
       .attr("y2", (d) => shiftedEnds(d.source.x, d.source.y, d.target.x, d.target.y).ty);
 
     suffix
-      .attr("x1", (d) => shiftedEnds(nodes[d.from].x, nodes[d.from].y, nodes[d.to].x, nodes[d.to].y).sx)
-      .attr("y1", (d) => shiftedEnds(nodes[d.from].x, nodes[d.from].y, nodes[d.to].x, nodes[d.to].y).sy)
-      .attr("x2", (d) => shiftedEnds(nodes[d.from].x, nodes[d.from].y, nodes[d.to].x, nodes[d.to].y).tx)
-      .attr("y2", (d) => shiftedEnds(nodes[d.from].x, nodes[d.from].y, nodes[d.to].x, nodes[d.to].y).ty);
+      .attr("x1", (d) => suffixEnds(d).sx)
+      .attr("y1", (d) => suffixEnds(d).sy)
+      .attr("x2", (d) => suffixEnds(d).tx)
+      .attr("y2", (d) => suffixEnds(d).ty);
 
     edgeLabel
       .attr("x", (d) => (d.source.x + d.target.x) / 2)
@@ -180,7 +204,13 @@ function renderGraph(graph, activeState = null) {
     node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
 
     nodeLabel.attr("x", (d) => d.x).attr("y", (d) => d.y);
-  });
+  };
+
+  simulation.stop();
+  for (let i = 0; i < 250; i += 1) {
+    simulation.tick();
+  }
+  updatePositions();
 
   renderedGraph = { node };
 }
