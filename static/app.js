@@ -13,6 +13,7 @@ const height = +svg.attr("height");
 let graphData = null;
 let lcsSteps = [];
 let stepCursor = -1;
+let renderedGraph = null;
 
 async function postJSON(url, data) {
   const res = await fetch(url, {
@@ -146,6 +147,16 @@ function renderGraph(graph, activeState = null) {
 
     nodeLabel.attr("x", (d) => d.x).attr("y", (d) => d.y);
   });
+
+  renderedGraph = { node };
+}
+
+function setActiveState(activeState = null) {
+  if (!renderedGraph) return;
+  renderedGraph.node.classed(
+    "active",
+    (d) => activeState !== null && d.id === activeState
+  );
 }
 
 function resetSteps() {
@@ -212,15 +223,13 @@ stepBtn.addEventListener("click", () => {
   stepCursor += 1;
   const step = lcsSteps[stepCursor];
   renderRows(stepCursor);
-  if (graphData) {
-    renderGraph(graphData, step.state);
-  }
+  setActiveState(step.state);
   statusText.textContent = `Шаг ${stepCursor + 1}/${lcsSteps.length}: символ '${step.char}', состояние q${step.state}, текущая длина ${step.currentLength}, лучший ответ "${step.bestSubstring}".`;
 });
 
 resetBtn.addEventListener("click", () => {
   stepCursor = -1;
   renderRows(stepCursor);
-  if (graphData) renderGraph(graphData);
+  setActiveState(null);
   statusText.textContent = "Пошаговый просмотр сброшен.";
 });
