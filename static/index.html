@@ -21,6 +21,8 @@
         </label>
         <div class="buttons">
           <button id="buildBtn">Построить автомат</button>
+          <button id="buildStepBtn" disabled>Следующий шаг построения</button>
+          <button id="buildResetBtn" disabled>Сбросить шаги построения</button>
           <button id="runBtn">Запустить LCS</button>
           <button id="stepBtn" disabled>Следующий шаг</button>
           <button id="resetBtn" disabled>Сбросить шаги</button>
@@ -36,6 +38,21 @@
         <div class="panel panel-graph">
           <h2>Граф автомата</h2>
           <svg id="graph" width="1400" height="760"></svg>
+        </div>
+        <div class="panel">
+          <h2>Пошаговое построение автомата</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Шаг</th>
+                <th>i</th>
+                <th>Символ</th>
+                <th>Действие</th>
+                <th>Пояснение</th>
+              </tr>
+            </thead>
+            <tbody id="buildStepsBody"></tbody>
+          </table>
         </div>
         <div class="panel">
           <h2>Пошаговый проход по строке B</h2>

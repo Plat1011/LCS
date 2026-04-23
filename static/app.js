@@ -1,10 +1,13 @@
 const sourceInput = document.getElementById("source");
 const targetInput = document.getElementById("target");
 const buildBtn = document.getElementById("buildBtn");
+const buildStepBtn = document.getElementById("buildStepBtn");
+const buildResetBtn = document.getElementById("buildResetBtn");
 const runBtn = document.getElementById("runBtn");
 const stepBtn = document.getElementById("stepBtn");
 const resetBtn = document.getElementById("resetBtn");
 const statusText = document.getElementById("statusText");
+const buildStepsBody = document.getElementById("buildStepsBody");
 const stepsBody = document.getElementById("stepsBody");
 const svg = d3.select("#graph");
 const width = +svg.attr("width");
@@ -14,6 +17,8 @@ svg
   .attr("preserveAspectRatio", "xMidYMid meet");
 
 let graphData = null;
+let buildSteps = [];
+let buildCursor = -1;
 let lcsSteps = [];
 let stepCursor = -1;
 let renderedGraph = null;
@@ -235,6 +240,14 @@ function resetSteps() {
   resetBtn.disabled = true;
 }
 
+function resetBuildSteps() {
+  buildSteps = [];
+  buildCursor = -1;
+  buildStepsBody.innerHTML = "";
+  buildStepBtn.disabled = true;
+  buildResetBtn.disabled = true;
+}
+
 function renderRows(upTo) {
   stepsBody.innerHTML = "";
   lcsSteps.forEach((step, idx) => {
@@ -253,13 +266,34 @@ function renderRows(upTo) {
   });
 }
 
+function renderBuildRows(upTo) {
+  buildStepsBody.innerHTML = "";
+  buildSteps.forEach((step, idx) => {
+    const tr = document.createElement("tr");
+    if (idx === upTo) tr.classList.add("active");
+    tr.innerHTML = `
+      <td>${step.step}</td>
+      <td>${step.charIndex}</td>
+      <td>${step.char}</td>
+      <td>${step.action}</td>
+      <td class="text-left">${step.explanation}</td>
+    `;
+    buildStepsBody.appendChild(tr);
+  });
+}
+
 buildBtn.addEventListener("click", async () => {
   try {
-    const data = await postJSON("/api/build", { source: sourceInput.value });
+    const data = await postJSON("/api/build-steps", { source: sourceInput.value });
     graphData = data.graph;
+    buildSteps = data.steps;
+    buildCursor = -1;
+    renderBuildRows(buildCursor);
     renderGraph(graphData);
     resetSteps();
-    statusText.textContent = `Автомат построен для строки A: "${data.source}". Состояний: ${graphData.nodes.length}.`;
+    buildStepBtn.disabled = false;
+    buildResetBtn.disabled = false;
+    statusText.textContent = `Автомат построен для "${data.source}". Покажите шаги построения: ${buildSteps.length} действий.`;
   } catch (err) {
     statusText.textContent = err.message;
   }
@@ -278,10 +312,34 @@ runBtn.addEventListener("click", async () => {
     renderGraph(graphData);
     stepBtn.disabled = false;
     resetBtn.disabled = false;
+    resetBuildSteps();
     statusText.textContent = `LCS = "${data.lcs}" (длина ${data.length}). Нажимайте "Следующий шаг".`;
   } catch (err) {
     statusText.textContent = err.message;
   }
+});
+
+buildStepBtn.addEventListener("click", () => {
+  if (buildCursor >= buildSteps.length - 1) {
+    statusText.textContent = "Все шаги построения уже показаны.";
+    return;
+  }
+  buildCursor += 1;
+  const step = buildSteps[buildCursor];
+  renderBuildRows(buildCursor);
+  renderGraph(step.graph, step.activeState);
+  statusText.textContent = `Построение ${buildCursor + 1}/${buildSteps.length}: [i=${step.charIndex}, '${step.char}'] ${step.action}. ${step.explanation}`;
+});
+
+buildResetBtn.addEventListener("click", () => {
+  buildCursor = -1;
+  renderBuildRows(buildCursor);
+  if (graphData) {
+    renderGraph(graphData);
+  } else {
+    setActiveState(null);
+  }
+  statusText.textContent = "Пошаговый просмотр построения сброшен.";
 });
 
 stepBtn.addEventListener("click", () => {
