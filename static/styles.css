@@ -103,6 +103,10 @@ td {
   text-align: center;
 }
 
+.text-left {
+  text-align: left;
+}
+
 tr.active {
   background: #dbeafe;
 }
