@@ -40,6 +40,34 @@ function renderGraph(graph, activeState = null) {
   }));
    const suffixLinks = graph.suffixLinks.map((e) => ({ ...e }));
 
+  const defs = svg.append("defs");
+
+  defs
+    .append("marker")
+    .attr("id", "arrow-edge")
+    .attr("viewBox", "0 -5 10 10")
+    .attr("refX", 28)
+    .attr("refY", 0)
+    .attr("markerWidth", 6)
+    .attr("markerHeight", 6)
+    .attr("orient", "auto")
+    .append("path")
+    .attr("d", "M0,-5L10,0L0,5")
+    .attr("fill", "#64748b");
+
+  defs
+    .append("marker")
+    .attr("id", "arrow-purple")
+    .attr("viewBox", "0 -5 10 10")
+    .attr("refX", 28)
+    .attr("refY", 0)
+    .attr("markerWidth", 6)
+    .attr("markerHeight", 6)
+    .attr("orient", "auto")
+    .append("path")
+    .attr("d", "M0,-5L10,0L0,5")
+    .attr("fill", "#c084fc");
+
   const simulation = d3
     .forceSimulation(nodes)
     .force("link", d3.forceLink(edges).id((d) => d.id).distance(120))
@@ -51,7 +79,8 @@ function renderGraph(graph, activeState = null) {
     .selectAll("line")
     .data(edges)
     .join("line")
-    .attr("class", "edge");
+    .attr("class", "edge")
+    .attr("marker-end", "url(#arrow-edge)");
 
   const suffix = svg
     .append("g")
@@ -60,20 +89,6 @@ function renderGraph(graph, activeState = null) {
     .join("line")
     .attr("class", "suffix-link")
     .attr("marker-end", "url(#arrow-purple)");
-
-  svg
-    .append("defs")
-    .append("marker")
-    .attr("id", "arrow-purple")
-    .attr("viewBox", "0 -5 10 10")
-    .attr("refX", 18)
-    .attr("refY", 0)
-    .attr("markerWidth", 6)
-    .attr("markerHeight", 6)
-    .attr("orient", "auto")
-    .append("path")
-    .attr("d", "M0,-5L10,0L0,5")
-    .attr("fill", "#c084fc");
 
   const edgeLabel = svg
     .append("g")
