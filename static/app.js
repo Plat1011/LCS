@@ -33,6 +33,11 @@ function renderGraph(graph, activeState = null) {
   svg.selectAll("*").remove();
   const nodeRadius = 22;
   const markerInset = 6;
+  const boundaryPadding = 12;
+  const minX = nodeRadius + boundaryPadding;
+  const maxX = width - nodeRadius - boundaryPadding;
+  const minY = nodeRadius + boundaryPadding;
+  const maxY = height - nodeRadius - boundaryPadding;
 
   const nodes = graph.nodes.map((n) => ({ ...n }));
   const edges = graph.edges.map((e) => ({
@@ -144,6 +149,11 @@ function renderGraph(graph, activeState = null) {
     .attr("pointer-events", "none");
 
   simulation.on("tick", () => {
+    nodes.forEach((d) => {
+      d.x = Math.max(minX, Math.min(maxX, d.x));
+      d.y = Math.max(minY, Math.min(maxY, d.y));
+    });
+
     const shiftedEnds = (x1, y1, x2, y2) => {
       const dx = x2 - x1;
       const dy = y2 - y1;
