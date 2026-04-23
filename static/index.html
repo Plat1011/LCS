@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Визуализация LCS через суффиксный автомат</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Наибольшая общая подстрока (LCS) + суффиксный автомат</h1>
+
+      <section class="controls">
+        <label>
+          Строка A (по ней строится автомат)
+          <input id="source" type="text" value="abacabad" />
+        </label>
+        <label>
+          Строка B (по ней идет проход)
+          <input id="target" type="text" value="zzabaca" />
+        </label>
+        <div class="buttons">
+          <button id="buildBtn">Построить автомат</button>
+          <button id="runBtn">Запустить LCS</button>
+          <button id="stepBtn" disabled>Следующий шаг</button>
+          <button id="resetBtn" disabled>Сбросить шаги</button>
+        </div>
+      </section>
+
+      <section class="status">
+        <h2>Состояние</h2>
+        <p id="statusText">Соберите автомат или сразу запустите LCS.</p>
+      </section>
+
+      <section class="layout">
+        <div class="panel">
+          <h2>Граф автомата</h2>
+          <svg id="graph" width="900" height="520"></svg>
+        </div>
+        <div class="panel">
+          <h2>Пошаговый проход по строке B</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Символ</th>
+                <th>Состояние</th>
+                <th>Текущая длина</th>
+                <th>Лучшая длина</th>
+                <th>Лучшая подстрока</th>
+              </tr>
+            </thead>
+            <tbody id="stepsBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="/static/app.js"></script>
+  </body>
+</html>
