@@ -32,8 +32,12 @@ function renderGraph(graph, activeState = null) {
   svg.selectAll("*").remove();
 
   const nodes = graph.nodes.map((n) => ({ ...n }));
-  const edges = graph.edges.map((e) => ({ ...e }));
-  const suffixLinks = graph.suffixLinks.map((e) => ({ ...e }));
+  const edges = graph.edges.map((e) => ({
+    ...e,
+    source: e.from,
+    target: e.to,
+  }));
+   const suffixLinks = graph.suffixLinks.map((e) => ({ ...e }));
 
   const simulation = d3
     .forceSimulation(nodes)
