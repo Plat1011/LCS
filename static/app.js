@@ -31,6 +31,8 @@ async function postJSON(url, data) {
 
 function renderGraph(graph, activeState = null) {
   svg.selectAll("*").remove();
+  const nodeRadius = 22;
+  const markerInset = 6;
 
   const nodes = graph.nodes.map((n) => ({ ...n }));
   const edges = graph.edges.map((e) => ({
@@ -46,7 +48,7 @@ function renderGraph(graph, activeState = null) {
     .append("marker")
     .attr("id", "arrow-edge")
     .attr("viewBox", "0 -5 10 10")
-    .attr("refX", 28)
+    .attr("refX", 10)
     .attr("refY", 0)
     .attr("markerWidth", 6)
     .attr("markerHeight", 6)
@@ -59,7 +61,7 @@ function renderGraph(graph, activeState = null) {
     .append("marker")
     .attr("id", "arrow-purple")
     .attr("viewBox", "0 -5 10 10")
-    .attr("refX", 28)
+    .attr("refX", 10)
     .attr("refY", 0)
     .attr("markerWidth", 6)
     .attr("markerHeight", 6)
@@ -104,7 +106,7 @@ function renderGraph(graph, activeState = null) {
     .selectAll("circle")
     .data(nodes)
     .join("circle")
-    .attr("r", 22)
+    .attr("r", nodeRadius)
     .attr("class", (d) => {
       const classes = ["node"];
       if (d.isTerminal) classes.push("terminal");
@@ -142,17 +144,34 @@ function renderGraph(graph, activeState = null) {
     .attr("pointer-events", "none");
 
   simulation.on("tick", () => {
+    const shiftedEnds = (x1, y1, x2, y2) => {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const len = Math.hypot(dx, dy);
+      if (len < 1e-6) {
+        return { sx: x1, sy: y1, tx: x2, ty: y2 };
+      }
+      const ux = dx / len;
+      const uy = dy / len;
+      return {
+        sx: x1 + ux * nodeRadius,
+        sy: y1 + uy * nodeRadius,
+        tx: x2 - ux * (nodeRadius + markerInset),
+        ty: y2 - uy * (nodeRadius + markerInset),
+      };
+    };
+
     link
-      .attr("x1", (d) => d.source.x)
-      .attr("y1", (d) => d.source.y)
-      .attr("x2", (d) => d.target.x)
-      .attr("y2", (d) => d.target.y);
+      .attr("x1", (d) => shiftedEnds(d.source.x, d.source.y, d.target.x, d.target.y).sx)
+      .attr("y1", (d) => shiftedEnds(d.source.x, d.source.y, d.target.x, d.target.y).sy)
+      .attr("x2", (d) => shiftedEnds(d.source.x, d.source.y, d.target.x, d.target.y).tx)
+      .attr("y2", (d) => shiftedEnds(d.source.x, d.source.y, d.target.x, d.target.y).ty);
 
     suffix
-      .attr("x1", (d) => nodes[d.from].x)
-      .attr("y1", (d) => nodes[d.from].y)
-      .attr("x2", (d) => nodes[d.to].x)
-      .attr("y2", (d) => nodes[d.to].y);
+      .attr("x1", (d) => shiftedEnds(nodes[d.from].x, nodes[d.from].y, nodes[d.to].x, nodes[d.to].y).sx)
+      .attr("y1", (d) => shiftedEnds(nodes[d.from].x, nodes[d.from].y, nodes[d.to].x, nodes[d.to].y).sy)
+      .attr("x2", (d) => shiftedEnds(nodes[d.from].x, nodes[d.from].y, nodes[d.to].x, nodes[d.to].y).tx)
+      .attr("y2", (d) => shiftedEnds(nodes[d.from].x, nodes[d.from].y, nodes[d.to].x, nodes[d.to].y).ty);
 
     edgeLabel
       .attr("x", (d) => (d.source.x + d.target.x) / 2)
@@ -192,6 +211,7 @@ function renderRows(upTo) {
       <td>${step.char}</td>
       <td>q${step.state}</td>
       <td>${step.currentLength}</td>
+      <td>${step.currentSubstring}</td>
       <td>${step.bestLength}</td>
       <td>${step.bestSubstring}</td>
     `;
@@ -239,7 +259,7 @@ stepBtn.addEventListener("click", () => {
   const step = lcsSteps[stepCursor];
   renderRows(stepCursor);
   setActiveState(step.state);
-  statusText.textContent = `Шаг ${stepCursor + 1}/${lcsSteps.length}: символ '${step.char}', состояние q${step.state}, текущая длина ${step.currentLength}, лучший ответ "${step.bestSubstring}".`;
+  statusText.textContent = `Шаг ${stepCursor + 1}/${lcsSteps.length}: символ '${step.char}', состояние q${step.state}, текущий поиск "${step.currentSubstring}" (длина ${step.currentLength}), лучший ответ "${step.bestSubstring}".`;
 });
 
 resetBtn.addEventListener("click", () => {
