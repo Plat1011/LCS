@@ -121,6 +121,7 @@ class SuffixAutomaton:
                     "char": ch,
                     "state": v,
                     "currentLength": l,
+                    "currentSubstring": t[i - l + 1 : i + 1] if l > 0 else "",
                     "bestLength": best_len,
                     "bestSubstring": t[best_pos - best_len + 1 : best_pos + 1] if best_len > 0 else "",
                 }
