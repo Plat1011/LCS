@@ -109,18 +109,18 @@ tr.active {
 
 .suffix-link {
   stroke: #c084fc;
-  stroke-width: 1.4;
-  stroke-dasharray: 4 3;
+  stroke-width: 2.2;
+  stroke-dasharray: 6 4;
 }
 
 .edge {
   stroke: #64748b;
-  stroke-width: 1.6;
+  stroke-width: 2.4;
 }
 
 .node {
   stroke: #1e293b;
-  stroke-width: 1.5;
+  stroke-width: 2;
   fill: #e2e8f0;
 }
 
@@ -130,5 +130,5 @@ tr.active {
 
 .node.terminal {
   stroke: #16a34a;
-  stroke-width: 2.5;
+  stroke-width: 3;
 }
