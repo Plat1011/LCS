@@ -10,7 +10,7 @@ body {
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 24px;
 }
@@ -63,8 +63,9 @@ button:disabled {
 
 .layout {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
+  grid-template-columns: 1.55fr 1fr;
   gap: 14px;
+  align-items: start;
 }
 
 .panel {
@@ -78,10 +79,15 @@ svg {
   display: block;
   width: 100%;
   max-width: 100%;
+  min-height: 620px;
   height: auto;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   background: #f8fafc;
+}
+
+.panel-graph {
+  overflow-x: auto;
 }
 
 table {
