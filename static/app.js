@@ -34,9 +34,9 @@ async function postJSON(url, data) {
 
 function renderGraph(graph, activeState = null) {
   svg.selectAll("*").remove();
-  const nodeRadius = 22;
-  const markerInset = 6;
-  const boundaryPadding = 12;
+  const nodeRadius = 30;
+  const markerInset = 8;
+  const boundaryPadding = 16;
   const minX = nodeRadius + boundaryPadding;
   const maxX = width - nodeRadius - boundaryPadding;
   const minY = nodeRadius + boundaryPadding;
@@ -81,8 +81,8 @@ function renderGraph(graph, activeState = null) {
 
   const simulation = d3
     .forceSimulation(nodes)
-    .force("link", d3.forceLink(edges).id((d) => d.id).distance(120))
-    .force("charge", d3.forceManyBody().strength(-400))
+    .force("link", d3.forceLink(edges).id((d) => d.id).distance(150))
+    .force("charge", d3.forceManyBody().strength(-520))
     .force("center", d3.forceCenter(width / 2, height / 2));
 
   const link = svg
@@ -107,7 +107,7 @@ function renderGraph(graph, activeState = null) {
     .data(edges)
     .join("text")
     .text((d) => d.char)
-    .attr("font-size", 12)
+    .attr("font-size", 16)
     .attr("fill", "#0f172a");
 
   const node = svg
@@ -148,7 +148,7 @@ function renderGraph(graph, activeState = null) {
     .data(nodes)
     .join("text")
     .text((d) => `q${d.id}\nlen=${d.length}`)
-    .attr("font-size", 11)
+    .attr("font-size", 14)
     .attr("text-anchor", "middle")
     .attr("dy", 4)
     .attr("pointer-events", "none");
