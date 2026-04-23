@@ -153,29 +153,26 @@ function renderGraph(graph, activeState = null) {
     .attr("dy", 4)
     .attr("pointer-events", "none");
 
-  simulation.on("tick", () => {
-    nodes.forEach((d) => {
-      d.x = Math.max(minX, Math.min(maxX, d.x));
-      d.y = Math.max(minY, Math.min(maxY, d.y));
-    });
-
-    const shiftedEnds = (x1, y1, x2, y2) => {
-      const dx = x2 - x1;
-      const dy = y2 - y1;
-      const len = Math.hypot(dx, dy);
-      if (len < 1e-6) {
-        return { sx: x1, sy: y1, tx: x2, ty: y2 };
-      }
-      const ux = dx / len;
-      const uy = dy / len;
-      return {
-        sx: x1 + ux * nodeRadius,
-        sy: y1 + uy * nodeRadius,
-        tx: x2 - ux * (nodeRadius + markerInset),
-        ty: y2 - uy * (nodeRadius + markerInset),
-      };
+  const shiftedEnds = (x1, y1, x2, y2) => {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len = Math.hypot(dx, dy);
+    if (len < 1e-6) {
+      return { sx: x1, sy: y1, tx: x2, ty: y2 };
+    }
+    const ux = dx / len;
+    const uy = dy / len;
+    return {
+      sx: x1 + ux * nodeRadius,
+      sy: y1 + uy * nodeRadius,
+      tx: x2 - ux * (nodeRadius + markerInset),
+      ty: y2 - uy * (nodeRadius + markerInset),
     };
   };
+
+  simulation.on("tick", () => {
+    updatePositions();
+  });
 
   const suffixEnds = (d) => {
     const fromNode = nodesById.get(d.from);
